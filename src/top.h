@@ -17,7 +17,8 @@ void multiply_matrices(T A[M][K], T B[K][N], T C[M][N]) {
 template <typename T, int M, int N> void relu(T in[M][N], T out[M][N]) {
   for (int m = 0; m < M; m++) {
     for (int n = 0; n < N; n++) {
-      out[m][n] = (in[m][n] > 0) ? in[m][n] : 0;
+      out[m][n] = (in[m][n] > 0) ? in[m][n] : T(0);
+      // ac_math::ac_relu(in[m][n], out[m][n])
     }
   }
 }

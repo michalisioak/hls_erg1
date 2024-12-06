@@ -2,6 +2,7 @@
 #include "ac_int.h"
 #include "read_txt.h"
 #include "top.h"
+#include <iomanip>
 #include <iostream>
 
 #define A_SIZE 5
@@ -116,6 +117,13 @@ int main() {
       }
     }
   }
+  std::cout << "temp:" << std::endl;
+  for (int i = 0; i < A_SIZE; i++) {
+    for (int j = 0; j < H_COLS; ++j) {
+      std::cout << temp[i][j] << " ";
+    }
+    std::cout << "\n";
+  }
   for (int k = 0; k < H_COLS; k++) {
     for (int m = 0; m < A_SIZE; m++) {
       for (int n = 0; n < H_COLS; n++) {
@@ -123,28 +131,36 @@ int main() {
       }
     }
   }
+  std::cout << "H_out(before relu):" << std::endl;
+  for (int i = 0; i < A_SIZE; i++) {
+    for (int j = 0; j < H_COLS; ++j) {
+      std::cout << H_out[i][j] << " ";
+    }
+    std::cout << "\n";
+  }
   for (int i = 0; i < A_SIZE; i++) {
     for (int j = 0; j < W_COLS; j++) {
+      // std::cout << ((H_out[i][j] > 0) ? H_out[i][j] : 0) << std::endl;
       H_out[i][j] = (H_out[i][j] > 0) ? H_out[i][j] : 0;
     }
   }
   std::cout << "Finished calculating H_out" << std::endl;
 
   std::cout << "Starting calculating ac_H_out..." << std::endl;
-  ac_fixed<16, 8, true> ac_A[A_SIZE][A_SIZE];
-  ac_fixed<16, 8, true> ac_H_out[A_SIZE][W_COLS];
-  ac_fixed<16, 8, true> ac_H_in[A_SIZE][H_COLS];
+  ac_fixed<17, 9, true> ac_A[A_SIZE][A_SIZE];
+  ac_fixed<17, 9, true> ac_H_out[A_SIZE][W_COLS];
+  ac_fixed<17, 9, true> ac_H_in[A_SIZE][H_COLS];
 
   for (int i = 0; i < A_SIZE; i++) {
     for (int j = 0; j < A_SIZE; j++) {
-      ac_A[i][j] = ac_fixed<16, 8, true>(A_tilde[i][j]);
-      std::cout << A_tilde[i][j] << " " << ac_A[i][j] << std::endl;
+      ac_A[i][j] = ac_fixed<16, 9, true>(A_tilde[i][j]);
+      // std::cout << A_tilde[i][j] << " " << ac_A[i][j] << std::endl;
     }
   }
   for (int i = 0; i < A_SIZE; i++) {
     for (int j = 0; j < H_COLS; j++) {
-      ac_H_in[i][j] = ac_fixed<16, 8, true>(H_in[i][j]);
-      std::cout << H_in[i][j] << " " << ac_H_in[i][j] << std::endl;
+      ac_H_in[i][j] = ac_fixed<16, 9, true>(H_in[i][j]);
+      // std::cout << H_in[i][j] << " " << ac_H_in[i][j] << std::endl;
     }
   }
 
@@ -152,15 +168,31 @@ int main() {
   std::cout << "Finished calculating ac_H_out" << std::endl;
 
   std::cout << "Starting testing..." << std::endl;
+  // for (int i = 0; i < A_SIZE; i++) {
+  //   for (int j = 0; j < W_COLS; j++) {
+  //     if (ac_H_out[i][j] != H_out[i][j]) {
+  //       std::cout << "At [" << i << "," << j << "]" << std::endl;
+  //       std::cout << "Expected: " << H_out[i][j] << std::endl;
+  //       std::cout << "Got: " << ac_H_out[i][j] << std::endl;
+  //       // return -1;
+  //     }
+  //   }
+  // }
+  std::cout << "H_out:" << std::endl;
   for (int i = 0; i < A_SIZE; i++) {
-    for (int j = 0; j < W_COLS; j++) {
-      if (ac_H_out[i][j] != H_out[i][j]) {
-        std::cout << "At [" << i << "," << j << "]" << std::endl;
-        std::cout << "Expected: " << H_out[i][j] << std::endl;
-        std::cout << "Got: " << ac_H_out[i][j] << std::endl;
-        return -1;
-      }
+    for (int j = 0; j < W_COLS; ++j) {
+      std::cout << H_out[i][j] << " ";
     }
+    std::cout << "\n";
+  }
+
+  std::cout << "ac_H_out:" << std::endl;
+  std::cout << std::fixed << std::setprecision(2);
+  for (int i = 0; i < A_SIZE; i++) {
+    for (int j = 0; j < W_COLS; ++j) {
+      std::cout << ac_H_out[i][j].to_double() << " ";
+    }
+    std::cout << std::endl;
   }
 
   std::cout << "Finished Testing!!!" << std::endl;

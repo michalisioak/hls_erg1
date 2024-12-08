@@ -1,15 +1,15 @@
 #include "ac_float.h"
 #include "ac_int.h"
 #include "read_txt.h"
-#include "top.h"
+#include "top.cpp"
 #if defined(TESTING)
 #include <iomanip>
 #endif
 #include <iostream>
 
-#define A_SIZE 5
-#define H_COLS 500
-#define W_COLS 16
+#define C_A_SIZE 5
+#define C_H_COLS 500
+#define C_W_COLS 16
 
 #define AC_INPUT ac_fixed<16, 9, true>
 #define AC_OUTPUT ac_fixed<128, 64, true>
@@ -105,92 +105,92 @@ void matmul(T *A, T *B, T *C, int A_rows, int A_cols, int B_cols) {
 
 int main() {
   std::cout << "Init...." << std::endl;
-  double A[A_SIZE][A_SIZE] = {{1, 1, 1, 0, 0},
-                              {1, 1, 1, 1, 0},
-                              {1, 1, 1, 1, 1},
-                              {0, 1, 1, 1, 1},
-                              {0, 0, 1, 1, 1}};
-  double D[A_SIZE][A_SIZE];
-  double A_tilde[A_SIZE][A_SIZE];
-  double H_in[A_SIZE][H_COLS];
+  double A[C_A_SIZE][C_A_SIZE] = {{1, 1, 1, 0, 0},
+                                  {1, 1, 1, 1, 0},
+                                  {1, 1, 1, 1, 1},
+                                  {0, 1, 1, 1, 1},
+                                  {0, 0, 1, 1, 1}};
+  double D[C_A_SIZE][C_A_SIZE];
+  double A_tilde[C_A_SIZE][C_A_SIZE];
+  double H_in[C_A_SIZE][C_H_COLS];
 
   std::cout << "Starting init data..." << std::endl;
   // create_random_graph(A);
   std::cout << "Graph (Adjacency Matrix):\n";
-  for (int i = 0; i < A_SIZE; ++i) {
-    for (int j = 0; j < A_SIZE; ++j) {
+  for (int i = 0; i < C_A_SIZE; ++i) {
+    for (int j = 0; j < C_A_SIZE; ++j) {
       std::cout << A[i][j] << " ";
     }
     std::cout << "\n";
   }
   compute_sqrt_degree_matrix(A, D);
   std::cout << "D (Adjacency Matrix):\n";
-  for (int i = 0; i < A_SIZE; ++i) {
-    for (int j = 0; j < A_SIZE; ++j) {
+  for (int i = 0; i < C_A_SIZE; ++i) {
+    for (int j = 0; j < C_A_SIZE; ++j) {
       std::cout << D[i][j] << " ";
     }
     std::cout << "\n";
   }
   compute_normalized_adjacency_matrix(A, D, A_tilde);
   std::cout << "Á_tilde (Adjacency Matrix):\n";
-  for (int i = 0; i < A_SIZE; ++i) {
-    for (int j = 0; j < A_SIZE; ++j) {
+  for (int i = 0; i < C_A_SIZE; ++i) {
+    for (int j = 0; j < C_A_SIZE; ++j) {
       std::cout << A_tilde[i][j] << " ";
     }
     std::cout << "\n";
   }
-  create_feature_matrix<double, A_SIZE, H_COLS>(H_in);
+  create_feature_matrix<double, C_A_SIZE, C_H_COLS>(H_in);
 
-  double weights[H_COLS][W_COLS];
-  read_data<double, H_COLS, W_COLS>(weights, "weights.txt");
+  double weights[C_H_COLS][C_W_COLS];
+  read_data<double, C_H_COLS, C_W_COLS>(weights, "weights.txt");
   std::cout << "Finished init data" << std::endl;
 
   std::cout << "Starting calculating H_out..." << std::endl;
 
-  double temp[A_SIZE][H_COLS]; // A_tilde * H_in
-  matmul(*A_tilde, *H_in, *temp, A_SIZE, A_SIZE, H_COLS);
+  double temp[C_A_SIZE][C_H_COLS]; // A_tilde * H_in
+  matmul(*A_tilde, *H_in, *temp, C_A_SIZE, C_A_SIZE, C_H_COLS);
 
-  double H_out[A_SIZE][W_COLS];
-  matmul(*temp, *weights, *H_out, A_SIZE, H_COLS, W_COLS);
+  double H_out[C_A_SIZE][C_W_COLS];
+  matmul(*temp, *weights, *H_out, C_A_SIZE, C_H_COLS, C_W_COLS);
   // relu
-  for (int i = 0; i < A_SIZE; i++) {
-    for (int j = 0; j < W_COLS; j++) {
+  for (int i = 0; i < C_A_SIZE; i++) {
+    for (int j = 0; j < C_W_COLS; j++) {
       H_out[i][j] = (H_out[i][j] > 0) ? H_out[i][j] : 0;
     }
   }
   std::cout << "Finished calculating H_out" << std::endl;
 
   std::cout << "Starting calculating ac_H_out..." << std::endl;
-  AC_INPUT ac_A[A_SIZE][A_SIZE] = {0};
-  AC_OUTPUT ac_H_out[A_SIZE][W_COLS] = {0};
-  AC_INPUT ac_weights[H_COLS][W_COLS];
+  AC_INPUT ac_A[C_A_SIZE][C_A_SIZE] = {0};
+  AC_OUTPUT ac_H_out[C_A_SIZE][C_W_COLS] = {0};
+  AC_INPUT ac_weights[C_H_COLS][C_W_COLS];
 
-  AC_INPUT ac_H_in[A_SIZE][H_COLS] = {0};
-  for (int i = 0; i < H_COLS; i++) {
-    for (int j = 0; j < W_COLS; j++) {
+  AC_INPUT ac_H_in[C_A_SIZE][C_H_COLS] = {0};
+  for (int i = 0; i < C_H_COLS; i++) {
+    for (int j = 0; j < C_W_COLS; j++) {
       ac_weights[i][j] = AC_INPUT(weights[i][j]);
       // std::cout << H_in[i][j] << " " << ac_H_in[i][j] << std::endl;
     }
   }
-  for (int i = 0; i < A_SIZE; i++) {
-    for (int j = 0; j < A_SIZE; j++) {
+  for (int i = 0; i < C_A_SIZE; i++) {
+    for (int j = 0; j < C_A_SIZE; j++) {
       ac_A[i][j] = AC_INPUT(A_tilde[i][j]);
       // std::cout << A_tilde[i][j] << " " << ac_A[i][j] << std::endl;
     }
   }
-  for (int i = 0; i < A_SIZE; i++) {
-    for (int j = 0; j < H_COLS; j++) {
+  for (int i = 0; i < C_A_SIZE; i++) {
+    for (int j = 0; j < C_H_COLS; j++) {
       ac_H_in[i][j] = AC_INPUT(H_in[i][j]);
       // std::cout << H_in[i][j] << " " << ac_H_in[i][j] << std::endl;
     }
   }
-  calc<AC_INPUT, AC_OUTPUT, A_SIZE, H_COLS, W_COLS>(ac_A, ac_H_in, ac_weights,
-                                                    ac_H_out);
+  calc<AC_INPUT, AC_OUTPUT, C_A_SIZE, C_H_COLS, C_W_COLS>(ac_A, ac_H_in,
+                                                          ac_weights, ac_H_out);
   std::cout << "Finished calculating ac_H_out" << std::endl;
 
   std::cout << "Starting testing..." << std::endl;
-  for (int i = 0; i < A_SIZE; i++) {
-    for (int j = 0; j < W_COLS; j++) {
+  for (int i = 0; i < C_A_SIZE; i++) {
+    for (int j = 0; j < C_W_COLS; j++) {
       if (abs(ac_H_out[i][j].to_double() - H_out[i][j]) > PERCISION) {
         std::cout << "At [" << i << "," << j << "]" << std::endl;
         std::cout << "Expected: " << H_out[i][j] << std::endl;
@@ -200,16 +200,16 @@ int main() {
   }
 #if defined(TESTING)
   std::cout << "H_out:" << std::endl;
-  for (int i = 0; i < A_SIZE; i++) {
-    for (int j = 0; j < W_COLS; ++j) {
+  for (int i = 0; i < C_A_SIZE; i++) {
+    for (int j = 0; j < C_W_COLS; ++j) {
       std::cout << std::setw(4) << std::scientific << std::setprecision(2)
                 << H_out[i][j] << " ";
     }
     std::cout << "\n";
   }
   std::cout << "ac_H_out:" << std::endl;
-  for (int i = 0; i < A_SIZE; i++) {
-    for (int j = 0; j < W_COLS; ++j) {
+  for (int i = 0; i < C_A_SIZE; i++) {
+    for (int j = 0; j < C_W_COLS; ++j) {
       std::cout << std::setw(4) << std::scientific << std::setprecision(2)
                 << ac_H_out[i][j].to_double() << " ";
     }

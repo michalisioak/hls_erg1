@@ -9,6 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(AC_MATH_DIR "./ac_math") 
 set(AC_TYPES_DIR "./ac_types") 
+set(AC_DSP_DIR "./ac_dsp") 
 
 set(SOURCE_FILES src/main.cpp)
 
@@ -17,6 +18,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE TESTING)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${AC_MATH_DIR}/include)
 target_include_directories(${PROJECT_NAME} PRIVATE ${AC_TYPES_DIR}/include)
+target_include_directories(${PROJECT_NAME} PRIVATE ${AC_DSP_DIR}/include)
 
 # target_link_libraries(${PROJECT_NAME} ac_math)
 # target_link_libraries(${PROJECT_NAME} ac_math)

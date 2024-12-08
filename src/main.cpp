@@ -12,7 +12,7 @@
 #define C_W_COLS 16
 
 #define AC_INPUT ac_fixed<16, 9, true>
-#define AC_OUTPUT ac_fixed<128, 64, true>
+#define AC_OUTPUT ac_fixed<64, 32, true>
 
 #define PERCISION 0.25e5
 

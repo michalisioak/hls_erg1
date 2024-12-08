@@ -1,16 +1,14 @@
-#include "ac_float.h"
-#include "ac_int.h"
 #include "mc_scverify.h"
 #include "read_txt.h"
-#include "top.cpp"
+#include <ac_fixed.h>
 #include <iostream>
 
 #define C_A_SIZE 5
 #define C_H_COLS 500
 #define C_W_COLS 16
 
-#define AC_INPUT ac_fixed<16, 9, true>
-#define AC_OUTPUT ac_fixed<128, 64, true>
+#define AC_INPUT ac_fixed<16, 9, true, AC_TRN, AC_SAT>
+#define AC_OUTPUT ac_fixed<64, 32, true, AC_TRN, AC_SAT>
 
 #define PERCISION 0.25e5
 
@@ -179,7 +177,7 @@ void matmul(T *A, T *B, T *C, int A_rows, int A_cols, int B_cols) {
   }
 }
 
-int CCS_MAIN() {
+CCS_MAIN(int argc, char *argv) {
   std::cout << "Init...." << std::endl;
   double A[C_A_SIZE][C_A_SIZE] = {{1, 1, 1, 0, 0},
                                   {1, 1, 1, 1, 0},
@@ -237,7 +235,7 @@ int CCS_MAIN() {
   std::cout << "Finished calculating H_out" << std::endl;
 
   std::cout << "Starting calculating ac_H_out..." << std::endl;
-  AC_INPUT ac_A[C_A_SIZE][C_A_SIZE] = {0};
+  AC_INPUT ac_A[C_A_SIZE][C_A_SIZE];
   AC_OUTPUT ac_H_out[C_A_SIZE][C_W_COLS] = {0};
   AC_INPUT ac_weights[C_H_COLS][C_W_COLS];
 

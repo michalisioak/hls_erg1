@@ -39,10 +39,8 @@ template <typename T, int M, int N> void relu(T in[M][N], T out[M][N]) {
 
 template <typename T, int A_SIZE, int H_COLS, int W_COLS>
 void calc(T A[A_SIZE][A_SIZE], T H_in[A_SIZE][H_COLS],
-          T H_out[A_SIZE][W_COLS]) {
+          T weights[H_COLS][W_COLS], T H_out[A_SIZE][W_COLS]) {
 #pragma hls_design top name = CALC
-  T weights[H_COLS][W_COLS];
-  read_data<T, H_COLS, W_COLS>(weights, "weights.txt");
 
   T tmp1[A_SIZE][H_COLS];
   // for (int i = 0; i < A_SIZE; i++) {

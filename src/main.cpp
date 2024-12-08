@@ -184,7 +184,7 @@ int main() {
       // std::cout << H_in[i][j] << " " << ac_H_in[i][j] << std::endl;
     }
   }
-  calc<AC_TYPE, A_SIZE, H_COLS, W_COLS>(ac_A, ac_H_in, ac_H_out);
+  calc<AC_TYPE, A_SIZE, H_COLS, W_COLS>(ac_A, ac_H_in, ac_weights, ac_H_out);
   std::cout << "Finished calculating ac_H_out" << std::endl;
 
   std::cout << "Starting testing..." << std::endl;

@@ -38,17 +38,22 @@ template <typename T, int N>
 void compute_normalized_adjacency_matrix(T A[N][N], T D[N][N],
                                          T A_tilde[N][N]) {
   T tmp[N][N];
-  for (int k = 0; k < A_SIZE; k++) {
-    for (int m = 0; m < A_SIZE; m++) {
-      for (int n = 0; n < A_SIZE; n++) {
+  for (int i = 0; i < N; i++) {
+    for (int j = 0; j < N; j++) {
+      tmp[i][j] = 0;
+      A_tilde[i][j] = 0;
+    }
+  }
+  for (int k = 0; k < N; k++) {
+    for (int m = 0; m < N; m++) {
+      for (int n = 0; n < N; n++) {
         tmp[m][n] += D[m][k] * A[k][n];
       }
     }
   }
-
-  for (int k = 0; k < A_SIZE; k++) {
-    for (int m = 0; m < A_SIZE; m++) {
-      for (int n = 0; n < A_SIZE; n++) {
+  for (int k = 0; k < N; k++) {
+    for (int m = 0; m < N; m++) {
+      for (int n = 0; n < N; n++) {
         A_tilde[m][n] += tmp[m][k] * D[k][n];
       }
     }
@@ -60,6 +65,33 @@ template <typename T, int A, int B> void create_feature_matrix(T H_in[A][B]) {
   for (int i = 0; i < A; ++i) {
     for (int j = 0; j < B; ++j) {
       H_in[i][j] = abs(rand() % 256);
+    }
+  }
+  std::ofstream out_file("feature_matrix.txt");
+  if (!out_file) {
+    std::cerr << "Error opening file!" << std::endl;
+  }
+  for (int i = 0; i < A; ++i) {
+    for (int j = 0; j < B; ++j) {
+      out_file << H_in[i][j];
+      if (j != B - 1) {
+        out_file << ", ";
+      }
+    }
+    out_file << std::endl;
+  }
+  out_file.close();
+  std::cout << "H_in written to feature_matrix.txt" << std::endl;
+}
+
+template <typename T>
+void matmul(T *A, T *B, T *C, int A_rows, int A_cols, int B_cols) {
+  for (int i = 0; i < A_rows; ++i) {
+    for (int j = 0; j < B_cols; ++j) {
+      C[i * B_cols + j] = 0;
+      for (int k = 0; k < A_cols; ++k) {
+        C[i * B_cols + j] += A[i * A_cols + k] * B[k * B_cols + j];
+      }
     }
   }
 }
@@ -108,63 +140,42 @@ int main() {
   read_data<double, H_COLS, W_COLS>(W, "weights.txt");
 
   double temp[A_SIZE][H_COLS]; // A_tilde * H_in
-  double H_out[A_SIZE][W_COLS];
+  matmul(*A_tilde, *H_in, *temp, A_SIZE, A_SIZE, H_COLS);
 
-  for (int k = 0; k < A_SIZE; k++) {
-    for (int m = 0; m < A_SIZE; m++) {
-      for (int n = 0; n < H_COLS; n++) {
-        temp[m][n] += A_tilde[m][k] * H_in[k][n];
-      }
-    }
-  }
-  std::cout << "temp:" << std::endl;
-  for (int i = 0; i < A_SIZE; i++) {
-    for (int j = 0; j < H_COLS; ++j) {
-      std::cout << temp[i][j] << " ";
-    }
-    std::cout << "\n";
-  }
-  for (int k = 0; k < H_COLS; k++) {
-    for (int m = 0; m < A_SIZE; m++) {
-      for (int n = 0; n < H_COLS; n++) {
-        H_out[m][n] += temp[m][k] * W[k][n];
-      }
-    }
-  }
-  std::cout << "H_out(before relu):" << std::endl;
-  for (int i = 0; i < A_SIZE; i++) {
-    for (int j = 0; j < H_COLS; ++j) {
-      std::cout << H_out[i][j] << " ";
-    }
-    std::cout << "\n";
-  }
+  double H_out[A_SIZE][W_COLS];
+  matmul(*temp, *W, *H_out, A_SIZE, H_COLS, W_COLS);
+  // relu
   for (int i = 0; i < A_SIZE; i++) {
     for (int j = 0; j < W_COLS; j++) {
-      // std::cout << ((H_out[i][j] > 0) ? H_out[i][j] : 0) << std::endl;
       H_out[i][j] = (H_out[i][j] > 0) ? H_out[i][j] : 0;
     }
   }
   std::cout << "Finished calculating H_out" << std::endl;
 
   std::cout << "Starting calculating ac_H_out..." << std::endl;
-  ac_fixed<17, 9, true> ac_A[A_SIZE][A_SIZE];
-  ac_fixed<17, 9, true> ac_H_out[A_SIZE][W_COLS];
-  ac_fixed<17, 9, true> ac_H_in[A_SIZE][H_COLS];
+  ac_fixed<45, 9, true> ac_A[A_SIZE][A_SIZE] = {0};
+  ac_fixed<45, 9, true> ac_H_out[A_SIZE][W_COLS] = {0};
+  for (int i = 0; i < A_SIZE; i++) {
+    for (int j = 0; j < W_COLS; j++) {
+      ac_H_out[i][j] = 0;
+    }
+  }
+
+  ac_fixed<45, 9, true> ac_H_in[A_SIZE][H_COLS] = {0};
 
   for (int i = 0; i < A_SIZE; i++) {
     for (int j = 0; j < A_SIZE; j++) {
-      ac_A[i][j] = ac_fixed<16, 9, true>(A_tilde[i][j]);
+      ac_A[i][j] = ac_fixed<45, 9, true>(A_tilde[i][j]);
       // std::cout << A_tilde[i][j] << " " << ac_A[i][j] << std::endl;
     }
   }
   for (int i = 0; i < A_SIZE; i++) {
     for (int j = 0; j < H_COLS; j++) {
-      ac_H_in[i][j] = ac_fixed<16, 9, true>(H_in[i][j]);
+      ac_H_in[i][j] = ac_fixed<45, 9, true>(H_in[i][j]);
       // std::cout << H_in[i][j] << " " << ac_H_in[i][j] << std::endl;
     }
   }
-
-  calc(ac_A, ac_H_in, ac_H_out);
+  calc<ac_fixed<45, 9, true>, A_SIZE, H_COLS, W_COLS>(ac_A, ac_H_in, ac_H_out);
   std::cout << "Finished calculating ac_H_out" << std::endl;
 
   std::cout << "Starting testing..." << std::endl;
@@ -178,19 +189,21 @@ int main() {
   //     }
   //   }
   // }
+
   std::cout << "H_out:" << std::endl;
   for (int i = 0; i < A_SIZE; i++) {
     for (int j = 0; j < W_COLS; ++j) {
-      std::cout << H_out[i][j] << " ";
+      std::cout << std::setw(4) << std::scientific << std::setprecision(2)
+                << H_out[i][j] << " ";
     }
     std::cout << "\n";
   }
 
   std::cout << "ac_H_out:" << std::endl;
-  std::cout << std::fixed << std::setprecision(2);
   for (int i = 0; i < A_SIZE; i++) {
     for (int j = 0; j < W_COLS; ++j) {
-      std::cout << ac_H_out[i][j].to_double() << " ";
+      std::cout << std::setw(4) << std::scientific << std::setprecision(2)
+                << ac_H_out[i][j].to_double() << " ";
     }
     std::cout << std::endl;
   }

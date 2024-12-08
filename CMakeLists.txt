@@ -21,5 +21,5 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${AC_TYPES_DIR}/include)
 # target_link_libraries(${PROJECT_NAME} ac_math)
 
 
-target_compile_options(${PROJECT_NAME} PRIVATE -Wall -O0 -Wextra -Wno-deprecated-copy -Wno-unknown-pragmas -Wno-unused-variable -Wno-unused-parameter
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -O0 -Wextra -Wno-deprecated-copy -Wno-unknown-pragmas -Wno-unused-variable -Wno-unused-parameter -std=c++17 -fsanitize=signed-integer-overflow
 )

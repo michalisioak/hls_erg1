@@ -1,0 +1,50 @@
+long double C1[A_SIZE][H_COLS];
+  long double C2[A_SIZE][H_COLS];
+  long double C3[A_SIZE][H_COLS];
+  for (int i = 0; i < A_SIZE; i++) {
+    for (int j = 0; j < H_COLS; j++) {
+      C1[i][j] = 0;
+      C2[i][j] = 0;
+      C3[i][j] = 0;
+    }
+  }
+
+  for (int m = 0; m < A_SIZE; m++)
+    for (int n = 0; n < H_COLS; n++)
+      for (int k = 0; k < A_SIZE; k++)
+        C1[m][n] += A_tilde[m][k] * H_in[k][n];
+
+  std::cout << "C1:" << std::endl;
+  for (int i = 0; i < A_SIZE; i++) {
+    for (int j = 0; j < W_COLS; ++j) {
+      std::cout << C1[i][j] << " ";
+    }
+    std::cout << "\n";
+  }
+
+  for (int m = 0; m < A_SIZE; m++)
+    for (int k = 0; k < A_SIZE; k++)
+      for (int n = 0; n < H_COLS; n++)
+        C2[m][n] += A_tilde[m][k] * H_in[k][n];
+
+  std::cout << "C2:" << std::endl;
+  for (int i = 0; i < A_SIZE; i++) {
+    for (int j = 0; j < W_COLS; ++j) {
+      std::cout << C2[i][j] << " ";
+    }
+    std::cout << "\n";
+  }
+
+  for (int k = 0; k < A_SIZE; k++) {
+    for (int m = 0; m < A_SIZE; m++)
+      for (int n = 0; n < H_COLS; n++)
+        C3[m][n] += A_tilde[m][k] * H_in[k][n];
+  }
+
+  std::cout << "C3:" << std::endl;
+  for (int i = 0; i < A_SIZE; i++) {
+    for (int j = 0; j < W_COLS; ++j) {
+      std::cout << C3[i][j] << " ";
+    }
+    std::cout << "\n";
+  }

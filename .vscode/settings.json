@@ -69,6 +69,7 @@
         "variant": "cpp",
         "format": "cpp",
         "__nullptr": "cpp",
-        "__locale": "cpp"
+        "__locale": "cpp",
+        "ios": "cpp"
     } // Optional: Use Ninja if installed for faster builds
 }

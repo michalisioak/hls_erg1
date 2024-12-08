@@ -1,0 +1,6 @@
+[submodule "ac_math"]
+    url = https://github.com/hlslibs/ac_math
+
+[submodule "ac_types"]
+    url = https://github.com/hlslibs/ac_types
+

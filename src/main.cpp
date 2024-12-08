@@ -2,14 +2,19 @@
 #include "ac_int.h"
 #include "read_txt.h"
 #include "top.h"
-// #include <iomanip>
+#if defined(TESTING)
+#include <iomanip>
+#endif
 #include <iostream>
 
 #define A_SIZE 5
 #define H_COLS 500
 #define W_COLS 16
 
-#define AC_TYPE ac_fixed<16, 9, true>
+#define AC_INPUT ac_fixed<16, 9, true>
+#define AC_OUTPUT ac_fixed<128, 64, true>
+
+#define PERCISION 0.25e5
 
 template <typename T, int N> void create_random_graph(T A[N][N]) {
   srand(time(0));
@@ -156,67 +161,61 @@ int main() {
   std::cout << "Finished calculating H_out" << std::endl;
 
   std::cout << "Starting calculating ac_H_out..." << std::endl;
-  AC_TYPE ac_A[A_SIZE][A_SIZE] = {0};
-  AC_TYPE ac_H_out[A_SIZE][W_COLS] = {0};
-  AC_TYPE ac_weights[H_COLS][W_COLS];
-  for (int i = 0; i < A_SIZE; i++) {
-    for (int j = 0; j < W_COLS; j++) {
-      ac_H_out[i][j] = 0;
-    }
-  }
+  AC_INPUT ac_A[A_SIZE][A_SIZE] = {0};
+  AC_OUTPUT ac_H_out[A_SIZE][W_COLS] = {0};
+  AC_INPUT ac_weights[H_COLS][W_COLS];
 
-  AC_TYPE ac_H_in[A_SIZE][H_COLS] = {0};
+  AC_INPUT ac_H_in[A_SIZE][H_COLS] = {0};
   for (int i = 0; i < H_COLS; i++) {
     for (int j = 0; j < W_COLS; j++) {
-      ac_weights[i][j] = AC_TYPE(weights[i][j]);
+      ac_weights[i][j] = AC_INPUT(weights[i][j]);
       // std::cout << H_in[i][j] << " " << ac_H_in[i][j] << std::endl;
     }
   }
   for (int i = 0; i < A_SIZE; i++) {
     for (int j = 0; j < A_SIZE; j++) {
-      ac_A[i][j] = AC_TYPE(A_tilde[i][j]);
+      ac_A[i][j] = AC_INPUT(A_tilde[i][j]);
       // std::cout << A_tilde[i][j] << " " << ac_A[i][j] << std::endl;
     }
   }
   for (int i = 0; i < A_SIZE; i++) {
     for (int j = 0; j < H_COLS; j++) {
-      ac_H_in[i][j] = AC_TYPE(H_in[i][j]);
+      ac_H_in[i][j] = AC_INPUT(H_in[i][j]);
       // std::cout << H_in[i][j] << " " << ac_H_in[i][j] << std::endl;
     }
   }
-  calc<AC_TYPE, A_SIZE, H_COLS, W_COLS>(ac_A, ac_H_in, ac_weights, ac_H_out);
+  calc<AC_INPUT, AC_OUTPUT, A_SIZE, H_COLS, W_COLS>(ac_A, ac_H_in, ac_weights,
+                                                    ac_H_out);
   std::cout << "Finished calculating ac_H_out" << std::endl;
 
   std::cout << "Starting testing..." << std::endl;
-  // for (int i = 0; i < A_SIZE; i++) {
-  //   for (int j = 0; j < W_COLS; j++) {
-  //     if (ac_H_out[i][j] != H_out[i][j]) {
-  //       std::cout << "At [" << i << "," << j << "]" << std::endl;
-  //       std::cout << "Expected: " << H_out[i][j] << std::endl;
-  //       std::cout << "Got: " << ac_H_out[i][j] << std::endl;
-  //       // return -1;
-  //     }
-  //   }
-  // }
-
-  // std::cout << "H_out:" << std::endl;
-  // for (int i = 0; i < A_SIZE; i++) {
-  //   for (int j = 0; j < W_COLS; ++j) {
-  //     std::cout << std::setw(4) << std::scientific << std::setprecision(2)
-  //               << H_out[i][j] << " ";
-  //   }
-  //   std::cout << "\n";
-  // }
-
-  // std::cout << "ac_H_out:" << std::endl;
-  // for (int i = 0; i < A_SIZE; i++) {
-  //   for (int j = 0; j < W_COLS; ++j) {
-  //     std::cout << std::setw(4) << std::scientific << std::setprecision(2)
-  //               << ac_H_out[i][j].to_double() << " ";
-  //   }
-  //   std::cout << std::endl;
-  // }
-
+  for (int i = 0; i < A_SIZE; i++) {
+    for (int j = 0; j < W_COLS; j++) {
+      if (abs(ac_H_out[i][j].to_double() - H_out[i][j]) > PERCISION) {
+        std::cout << "At [" << i << "," << j << "]" << std::endl;
+        std::cout << "Expected: " << H_out[i][j] << std::endl;
+        std::cout << "Got: " << ac_H_out[i][j] << std::endl;
+      }
+    }
+  }
+#if defined(TESTING)
+  std::cout << "H_out:" << std::endl;
+  for (int i = 0; i < A_SIZE; i++) {
+    for (int j = 0; j < W_COLS; ++j) {
+      std::cout << std::setw(4) << std::scientific << std::setprecision(2)
+                << H_out[i][j] << " ";
+    }
+    std::cout << "\n";
+  }
+  std::cout << "ac_H_out:" << std::endl;
+  for (int i = 0; i < A_SIZE; i++) {
+    for (int j = 0; j < W_COLS; ++j) {
+      std::cout << std::setw(4) << std::scientific << std::setprecision(2)
+                << ac_H_out[i][j].to_double() << " ";
+    }
+    std::cout << std::endl;
+  }
+#endif
   std::cout << "Finished Testing!!!" << std::endl;
 
   return 0;

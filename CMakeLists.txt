@@ -13,6 +13,7 @@ set(AC_TYPES_DIR "./ac_types")
 set(SOURCE_FILES src/main.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+target_compile_definitions(${PROJECT_NAME} PRIVATE TESTING)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${AC_MATH_DIR}/include)
 target_include_directories(${PROJECT_NAME} PRIVATE ${AC_TYPES_DIR}/include)
@@ -21,5 +22,5 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${AC_TYPES_DIR}/include)
 # target_link_libraries(${PROJECT_NAME} ac_math)
 
 
-target_compile_options(${PROJECT_NAME} PRIVATE -Wall -O0 -Wextra -Wno-deprecated-copy -Wno-unknown-pragmas -Wno-unused-variable -Wno-unused-parameter -std=c++17 -fsanitize=signed-integer-overflow
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -O0 -Wextra -Wno-deprecated-copy -Wno-unknown-pragmas -Wno-unused-variable -Wno-unused-parameter
 )

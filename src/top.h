@@ -1,23 +1,9 @@
 #include "read_txt.h"
 
-#pragma HLS target_frequency "500 MHz"
-
-// template <typename T>
-// void matmul(T *A, T *B, T *C, int A_rows, int A_cols, int B_cols) {
-//   for (int i = 0; i < A_rows; ++i) {
-//     for (int j = 0; j < B_cols; ++j) {
-//       C[i * B_cols + j] = 0;
-//       for (int k = 0; k < A_cols; ++k) {
-//         C[i * B_cols + j] += A[i * A_cols + k] * B[k * B_cols + j];
-//       }
-//     }
-//   }
-// }
-
+// #pragma hls_design block
 template <typename T, int M, int K, int N, int ID>
 void multiply_matrices(T A[M][K], T B[K][N], T C[M][N]) {
   for (int k = 0; k < K; k++) {
-#pragma hls_design block name = MUL_MAT
 #pragma hls_unroll 8
     for (int m = 0; m < M; m++) {
       for (int n = 0; n < N; n++) {
@@ -27,38 +13,43 @@ void multiply_matrices(T A[M][K], T B[K][N], T C[M][N]) {
   }
 }
 
+// #pragma hls_design block
 template <typename T, int M, int N> void relu(T in[M][N], T out[M][N]) {
-#pragma hls_design block name = RELU
   for (int m = 0; m < M; m++) {
     for (int n = 0; n < N; n++) {
       out[m][n] = (in[m][n] > 0) ? in[m][n] : T(0);
-      // ac_math::ac_relu(in[m][n], out[m][n])
     }
   }
 }
 
-template <typename T, int A_SIZE, int H_COLS, int W_COLS>
-void calc(T A[A_SIZE][A_SIZE], T H_in[A_SIZE][H_COLS],
-          T weights[H_COLS][W_COLS], T H_out[A_SIZE][W_COLS]) {
-#pragma hls_design top name = CALC
+#pragma hls_design top
+template <typename INPUT, typename OUTPUT, int A_SIZE, int H_COLS, int W_COLS>
+void calc(INPUT A[A_SIZE][A_SIZE], INPUT H_in[A_SIZE][H_COLS],
+          INPUT weights[H_COLS][W_COLS], OUTPUT H_out[A_SIZE][W_COLS]) {
+  OUTPUT A_[A_SIZE][A_SIZE];
+  for (int i = 0; i < A_SIZE; i++) {
+    for (int j = 0; j < A_SIZE; j++) {
+      A_[i][j] = OUTPUT(A[i][j]);
+    }
+  }
+  OUTPUT H_in_[A_SIZE][H_COLS];
+  for (int i = 0; i < A_SIZE; i++) {
+    for (int j = 0; j < H_COLS; j++) {
+      H_in_[i][j] = OUTPUT(H_in[i][j]);
+    }
+  }
+  OUTPUT weights_[H_COLS][W_COLS];
+  for (int i = 0; i < H_COLS; i++) {
+    for (int j = 0; j < W_COLS; j++) {
+      weights_[i][j] = OUTPUT(weights[i][j]);
+    }
+  }
 
-  T tmp1[A_SIZE][H_COLS];
-  // for (int i = 0; i < A_SIZE; i++) {
-  //   for (int j = 0; j < H_COLS; j++) {
-  //     tmp1[i][j] = T(0);
-  //   }
-  // }
+  OUTPUT tmp1[A_SIZE][H_COLS];
+  multiply_matrices<OUTPUT, A_SIZE, A_SIZE, H_COLS, 0>(A_, H_in_, tmp1);
 
-  multiply_matrices<T, A_SIZE, A_SIZE, H_COLS, 0>(A, H_in, tmp1);
+  OUTPUT tmp2[A_SIZE][W_COLS];
+  multiply_matrices<OUTPUT, A_SIZE, H_COLS, W_COLS, 1>(tmp1, weights_, tmp2);
 
-  T tmp2[A_SIZE][W_COLS];
-  // for (int i = 0; i < A_SIZE; i++) {
-  //   for (int j = 0; j < W_COLS; j++) {
-  //     tmp2[i][j] = T(0);
-  //   }
-  // }
-
-  multiply_matrices<T, A_SIZE, H_COLS, W_COLS, 1>(tmp1, weights, tmp2);
-
-  relu<T, A_SIZE, W_COLS>(tmp2, H_out);
+  relu<OUTPUT, A_SIZE, W_COLS>(tmp2, H_out);
 }

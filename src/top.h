@@ -17,7 +17,7 @@
 template <typename T, int M, int K, int N, int ID>
 void multiply_matrices(T A[M][K], T B[K][N], T C[M][N]) {
   for (int k = 0; k < K; k++) {
-#pragma HLS block name = MUL_MATRIX
+#pragma hls_design block name = MUL_MAT
 #pragma hls_unroll 8
     for (int m = 0; m < M; m++) {
       for (int n = 0; n < N; n++) {
@@ -28,7 +28,7 @@ void multiply_matrices(T A[M][K], T B[K][N], T C[M][N]) {
 }
 
 template <typename T, int M, int N> void relu(T in[M][N], T out[M][N]) {
-#pragma HLS block name = RELU
+#pragma hls_design block name = RELU
   for (int m = 0; m < M; m++) {
     for (int n = 0; n < N; n++) {
       out[m][n] = (in[m][n] > 0) ? in[m][n] : T(0);
@@ -40,7 +40,7 @@ template <typename T, int M, int N> void relu(T in[M][N], T out[M][N]) {
 template <typename T, int A_SIZE, int H_COLS, int W_COLS>
 void calc(T A[A_SIZE][A_SIZE], T H_in[A_SIZE][H_COLS],
           T H_out[A_SIZE][W_COLS]) {
-#pragma HLS top name = CALC
+#pragma hls_design top name = CALC
   T weights[H_COLS][W_COLS];
   read_data<T, H_COLS, W_COLS>(weights, "weights.txt");
 

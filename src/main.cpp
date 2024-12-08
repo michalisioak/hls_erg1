@@ -2,12 +2,14 @@
 #include "ac_int.h"
 #include "read_txt.h"
 #include "top.h"
-#include <iomanip>
+// #include <iomanip>
 #include <iostream>
 
 #define A_SIZE 5
 #define H_COLS 500
 #define W_COLS 16
+
+#define AC_TYPE ac_fixed<16, 9, true>
 
 template <typename T, int N> void create_random_graph(T A[N][N]) {
   srand(time(0));
@@ -133,17 +135,18 @@ int main() {
     std::cout << "\n";
   }
   create_feature_matrix<double, A_SIZE, H_COLS>(H_in);
+
+  double weights[H_COLS][W_COLS];
+  read_data<double, H_COLS, W_COLS>(weights, "weights.txt");
   std::cout << "Finished init data" << std::endl;
 
   std::cout << "Starting calculating H_out..." << std::endl;
-  double W[H_COLS][W_COLS];
-  read_data<double, H_COLS, W_COLS>(W, "weights.txt");
 
   double temp[A_SIZE][H_COLS]; // A_tilde * H_in
   matmul(*A_tilde, *H_in, *temp, A_SIZE, A_SIZE, H_COLS);
 
   double H_out[A_SIZE][W_COLS];
-  matmul(*temp, *W, *H_out, A_SIZE, H_COLS, W_COLS);
+  matmul(*temp, *weights, *H_out, A_SIZE, H_COLS, W_COLS);
   // relu
   for (int i = 0; i < A_SIZE; i++) {
     for (int j = 0; j < W_COLS; j++) {
@@ -153,29 +156,35 @@ int main() {
   std::cout << "Finished calculating H_out" << std::endl;
 
   std::cout << "Starting calculating ac_H_out..." << std::endl;
-  ac_fixed<45, 9, true> ac_A[A_SIZE][A_SIZE] = {0};
-  ac_fixed<45, 9, true> ac_H_out[A_SIZE][W_COLS] = {0};
+  AC_TYPE ac_A[A_SIZE][A_SIZE] = {0};
+  AC_TYPE ac_H_out[A_SIZE][W_COLS] = {0};
+  AC_TYPE ac_weights[H_COLS][W_COLS];
   for (int i = 0; i < A_SIZE; i++) {
     for (int j = 0; j < W_COLS; j++) {
       ac_H_out[i][j] = 0;
     }
   }
 
-  ac_fixed<45, 9, true> ac_H_in[A_SIZE][H_COLS] = {0};
-
+  AC_TYPE ac_H_in[A_SIZE][H_COLS] = {0};
+  for (int i = 0; i < H_COLS; i++) {
+    for (int j = 0; j < W_COLS; j++) {
+      ac_weights[i][j] = AC_TYPE(weights[i][j]);
+      // std::cout << H_in[i][j] << " " << ac_H_in[i][j] << std::endl;
+    }
+  }
   for (int i = 0; i < A_SIZE; i++) {
     for (int j = 0; j < A_SIZE; j++) {
-      ac_A[i][j] = ac_fixed<45, 9, true>(A_tilde[i][j]);
+      ac_A[i][j] = AC_TYPE(A_tilde[i][j]);
       // std::cout << A_tilde[i][j] << " " << ac_A[i][j] << std::endl;
     }
   }
   for (int i = 0; i < A_SIZE; i++) {
     for (int j = 0; j < H_COLS; j++) {
-      ac_H_in[i][j] = ac_fixed<45, 9, true>(H_in[i][j]);
+      ac_H_in[i][j] = AC_TYPE(H_in[i][j]);
       // std::cout << H_in[i][j] << " " << ac_H_in[i][j] << std::endl;
     }
   }
-  calc<ac_fixed<45, 9, true>, A_SIZE, H_COLS, W_COLS>(ac_A, ac_H_in, ac_H_out);
+  calc<AC_TYPE, A_SIZE, H_COLS, W_COLS>(ac_A, ac_H_in, ac_H_out);
   std::cout << "Finished calculating ac_H_out" << std::endl;
 
   std::cout << "Starting testing..." << std::endl;
@@ -190,23 +199,23 @@ int main() {
   //   }
   // }
 
-  std::cout << "H_out:" << std::endl;
-  for (int i = 0; i < A_SIZE; i++) {
-    for (int j = 0; j < W_COLS; ++j) {
-      std::cout << std::setw(4) << std::scientific << std::setprecision(2)
-                << H_out[i][j] << " ";
-    }
-    std::cout << "\n";
-  }
+  // std::cout << "H_out:" << std::endl;
+  // for (int i = 0; i < A_SIZE; i++) {
+  //   for (int j = 0; j < W_COLS; ++j) {
+  //     std::cout << std::setw(4) << std::scientific << std::setprecision(2)
+  //               << H_out[i][j] << " ";
+  //   }
+  //   std::cout << "\n";
+  // }
 
-  std::cout << "ac_H_out:" << std::endl;
-  for (int i = 0; i < A_SIZE; i++) {
-    for (int j = 0; j < W_COLS; ++j) {
-      std::cout << std::setw(4) << std::scientific << std::setprecision(2)
-                << ac_H_out[i][j].to_double() << " ";
-    }
-    std::cout << std::endl;
-  }
+  // std::cout << "ac_H_out:" << std::endl;
+  // for (int i = 0; i < A_SIZE; i++) {
+  //   for (int j = 0; j < W_COLS; ++j) {
+  //     std::cout << std::setw(4) << std::scientific << std::setprecision(2)
+  //               << ac_H_out[i][j].to_double() << " ";
+  //   }
+  //   std::cout << std::endl;
+  // }
 
   std::cout << "Finished Testing!!!" << std::endl;
 

@@ -189,15 +189,7 @@ int main() {
   std::cout << "Finished calculating ac_H_out" << std::endl;
 
   std::cout << "Starting testing..." << std::endl;
-  for (int i = 0; i < C_A_SIZE; i++) {
-    for (int j = 0; j < C_W_COLS; j++) {
-      if (abs(ac_H_out[i][j].to_double() - H_out[i][j]) > PERCISION) {
-        std::cout << "At [" << i << "," << j << "]" << std::endl;
-        std::cout << "Expected: " << H_out[i][j] << std::endl;
-        std::cout << "Got: " << ac_H_out[i][j] << std::endl;
-      }
-    }
-  }
+
 #if defined(TESTING)
   std::cout << "H_out:" << std::endl;
   for (int i = 0; i < C_A_SIZE; i++) {
@@ -216,6 +208,16 @@ int main() {
     std::cout << std::endl;
   }
 #endif
+  for (int i = 0; i < C_A_SIZE; i++) {
+    for (int j = 0; j < C_W_COLS; j++) {
+      if (abs(ac_H_out[i][j].to_double() - H_out[i][j]) > PERCISION) {
+        std::cout << "At [" << i << "," << j << "]" << std::endl;
+        std::cout << "Expected: " << H_out[i][j] << std::endl;
+        std::cout << "Got: " << ac_H_out[i][j] << std::endl;
+        return -1;
+      }
+    }
+  }
   std::cout << "Finished Testing!!!" << std::endl;
 
   return 0;

@@ -40,6 +40,7 @@ void multiply_matrices(T A[M][K], T B[K][N], T C[M][N]) {
 // #pragma hls_design block
 template <typename T, int M, int N> void relu(T in[M][N], T out[M][N]) {
   for (int m = 0; m < M; m++) {
+#pragma hls_unroll 8
     for (int n = 0; n < N; n++) {
       out[m][n] = (in[m][n] > 0) ? in[m][n] : T(0);
     }
@@ -269,11 +270,12 @@ CCS_MAIN(int argc, char *argv) {
         std::cout << "At [" << i << "," << j << "]" << std::endl;
         std::cout << "Expected: " << H_out[i][j] << std::endl;
         std::cout << "Got: " << ac_H_out[i][j] << std::endl;
+        CSS_RETURN(-1);
       }
     }
   }
 
   std::cout << "Finished Testing!!!" << std::endl;
 
-  return 0;
+  CSS_RETURN(0);
 }
